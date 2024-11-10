@@ -5,19 +5,26 @@ const cheerio = require("cheerio");
 async function obtenerPrecios() {
   try {
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--no-sandbox", "--disable-setuid-sandbox"], // Opciones necesarias para Railway
       headless: true,
     });
     const page = await browser.newPage();
 
     // Navegar a la página principal de precios
-    await page.goto("https://www.agronegocios.co/precios");
+    console.log("Navegando a la página de precios...");
+    await page.goto("https://www.agronegocios.co/precios", {
+      waitUntil: "load",
+      timeout: 0,
+    });
+    console.log("Página cargada correctamente.");
 
     // Esperar a que la tabla de precios se cargue
     await page.waitForSelector(".ttable .tbody .row");
+    console.log("Tabla de precios detectada.");
 
     // Obtener el contenido HTML de la página
     const html = await page.content();
+    console.log("HTML recuperado:", html.substring(0, 500)); // Muestra los primeros 500 caracteres del HTML para depuración
     await browser.close();
 
     const $ = cheerio.load(html);
@@ -31,17 +38,20 @@ async function obtenerPrecios() {
         const fecha = $(element).find(".value").first().next().text().trim();
         const variacion = $(element).find(".value").last().text().trim();
 
-        precios.push({
-          producto: nombre,
-          precio_promedio: precioPromedio,
-          fecha: fecha,
-          variacion: variacion,
-        });
+        if (nombre) {
+          precios.push({
+            producto: nombre,
+            precio_promedio: precioPromedio,
+            fecha: fecha,
+            variacion: variacion,
+          });
+        }
       } catch (error) {
         console.error(`Error al procesar la fila ${index + 1}:`, error);
       }
     });
 
+    console.log("Productos extraídos:", precios.length);
     return precios;
   } catch (error) {
     console.error("Error al obtener los precios:", error);
@@ -61,7 +71,7 @@ function convertirAKebabCase(texto) {
 async function obtenerGrafica(nombreProducto) {
   try {
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--no-sandbox", "--disable-setuid-sandbox"], // Opciones necesarias para Railway
       headless: true,
     });
     const page = await browser.newPage();
@@ -69,11 +79,13 @@ async function obtenerGrafica(nombreProducto) {
 
     // Construir la URL del producto
     const urlProducto = `https://www.agronegocios.co/precios/${nombreProductoKebab}`;
+    console.log("URL generada para el producto:", urlProducto);
 
-    // Navegar a la página del producto (opcional si necesitas verificar la página)
+    // Navegar a la página del producto para verificar su existencia
     await page.goto(urlProducto, { waitUntil: "load", timeout: 0 });
-
+    console.log("Página del producto cargada correctamente.");
     await browser.close();
+
     return urlProducto;
   } catch (error) {
     console.error("Error al obtener la gráfica:", error);
