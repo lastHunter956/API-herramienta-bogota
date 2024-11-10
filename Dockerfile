@@ -1,43 +1,45 @@
-# Usa una imagen base ligera y compatible con Puppeteer
+# Usar una imagen base que soporte Puppeteer
 FROM node:20
 
-# Instalar las dependencias necesarias para Puppeteer/Chromium
+# Instalar las dependencias necesarias para Puppeteer
 RUN apt-get update && apt-get install -y \
     wget \
-    curl \
     gnupg \
     libnss3 \
-    libxss1 \
-    libasound2 \
-    libatk1.0-0 \
-    libpangocairo-1.0-0 \
+    libatk-bridge2.0-0 \
+    libx11-xcb1 \
     libxcomposite1 \
+    libxrandr2 \
+    libxi6 \
     libxcursor1 \
     libxdamage1 \
-    libxi6 \
-    libgbm1 \
-    libgdk-pixbuf2.0-0 \
+    libxext6 \
+    libxfixes3 \
     libcups2 \
+    libgbm1 \
+    libasound2 \
+    fonts-liberation \
+    libpangocairo-1.0-0 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
     libdrm2 \
-    libxrandr2 \
-    libxinerama1 \
-    libpangoft2-1.0-0 \
-    libwoff1 \
-    --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+    libnspr4 \
+    libxss1 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Establecer el directorio de trabajo
+# Crear un directorio para la aplicación
 WORKDIR /usr/src/app
 
-# Copiar archivos del proyecto
+# Copiar los archivos del proyecto
 COPY package*.json ./
 COPY . .
 
-# Instalar dependencias del proyecto
+# Instalar las dependencias del proyecto
 RUN npm install
 
-# Exponer el puerto 3000
+# Exponer el puerto en el que se ejecutará la API
 EXPOSE 3000
 
-# Comando de inicio
+# Comando para iniciar la aplicación
 CMD ["npm", "start"]
