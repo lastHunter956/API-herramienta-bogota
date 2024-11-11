@@ -86,16 +86,18 @@ app.post("/ordenar", async (req, res) => {
 
     // Calcular porcentajeNumerico correctamente
     productosValidos.forEach((p) => {
-      // Elimina caracteres no numéricos excepto el signo negativo y la coma
+      // Limpia caracteres no numéricos excepto el signo negativo y la coma
       const porcentajeLimpio = p.variacion.porcentaje
         .replace(/[^0-9.,-]/g, "") // Remueve todo excepto números, punto, coma y signo negativo
         .replace(",", "."); // Reemplaza coma por punto decimal
 
-      // Convierte a número y asigna
-      const porcentajeNumerico = parseFloat(porcentajeLimpio);
-      p.variacion.porcentajeNumerico = porcentajeLimpio.includes("-")
-        ? -porcentajeNumerico
-        : porcentajeNumerico || 0;
+      // Verifica si el porcentaje contiene un signo negativo
+      const porcentajeNumerico = porcentajeLimpio.startsWith("-")
+        ? -parseFloat(porcentajeLimpio.replace("-", ""))
+        : parseFloat(porcentajeLimpio);
+
+      // Asigna el valor numérico corregido
+      p.variacion.porcentajeNumerico = porcentajeNumerico || 0;
     });
 
     // Ordenar los productos por porcentajeNumerico
