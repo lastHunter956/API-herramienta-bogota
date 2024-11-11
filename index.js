@@ -21,15 +21,25 @@ app.get("/productos", async (req, res) => {
   }
 });
 
-app.get("/productos/:nombre", async (req, res) => {
+// POST para obtener información de un producto específico
+app.post("/productos", async (req, res) => {
   try {
-    const nombreProducto = req.params.nombre;
-    const precios = await obtenerPrecios();
-    const producto = precios.find((p) => p.producto === nombreProducto);
+    const { nombre } = req.body; // Obtener el nombre del producto desde el cuerpo de la solicitud
+
+    if (!nombre) {
+      return res
+        .status(400)
+        .json({ error: 'El parámetro "nombre" es requerido.' });
+    }
+
+    const precios = await obtenerPrecios(); // Obtiene todos los productos
+    const producto = precios.find((p) => p.producto === nombre);
+
     if (producto) {
-      producto.imagen = await buscarImagen(nombreProducto);
-      producto.mas_info = await obtenerGrafica(nombreProducto);
-      producto.descripcion = await buscarDescripcionWikipedia(nombreProducto);
+      // Enriquecer la respuesta con imagen, gráfica y descripción
+      producto.imagen = await buscarImagen(nombre);
+      producto.mas_info = await obtenerGrafica(nombre);
+      producto.descripcion = await buscarDescripcionWikipedia(nombre);
       res.json(producto);
     } else {
       res.status(404).json({ error: "Producto no encontrado" });
